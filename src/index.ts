@@ -65,12 +65,11 @@ await page.waitForNetworkIdle();
 
 await page.locator('input[data-value="Total"]').click();
 await page.locator('[data-value="Day"]').click();
-
 await page.locator('::-p-text(Apply)').click();
 
-console.log(`Navigated to electricity usage, now at ${page.url()}`);
+console.log('Navigated to electricity usage');
 
-const arr: number[] = [];
+const arr: {day: number[], night: number[]} = {day: [], night: []};
 await page.waitForResponse(async response => {
   try {
     const data = await response.json();
@@ -81,7 +80,30 @@ await page.waitForResponse(async response => {
       const responseStr = parsedData.IPResult.response;
       const responseData = JSON.parse(responseStr);
       if (responseData.Data) {
-        arr.push(...responseData.Data);
+        arr.day.push(...responseData.Data);
+        return true;
+      }
+    }
+  } catch (error) {}
+  return false;
+});
+
+await page.locator('input[data-value="Day"]').click();
+await page.locator('[data-value="Night"]').click();
+await page.locator('::-p-text(Apply)').click();
+
+// TODO: make this a function when I'm not being lazy
+await page.waitForResponse(async response => {
+  try {
+    const data = await response.json();
+    if ('actions' in data) {
+      const returnValueStr = data.actions[0].returnValue.returnValue;
+      const parsedData = JSON.parse(returnValueStr);
+
+      const responseStr = parsedData.IPResult.response;
+      const responseData = JSON.parse(responseStr);
+      if (responseData.Data) {
+        arr.night.push(...responseData.Data);
         return true;
       }
     }
