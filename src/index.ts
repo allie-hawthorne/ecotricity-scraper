@@ -24,7 +24,7 @@ console.log(`Navigated to ${page.url()}`);
 // Set screen size.
 await page.setViewport({width: 1080, height: 1024});
 
-console.log('Filling in login form');
+console.log('Filling in username');
 
 // Type into search box using accessible input name.
 await page.locator('input[type="email"]').fill(USERNAME);
