@@ -4,6 +4,7 @@ import 'dotenv/config';
 
 const USERNAME = process.env.ECOTRICITY_USERNAME || '';
 const PASSWORD = process.env.ECOTRICITY_PASSWORD || '';
+const OUTPUT_FILE = 'output.csv';
 
 if (!USERNAME || !PASSWORD) {
   console.error('Please set ECOTRICITY_USERNAME and ECOTRICITY_PASSWORD in your .env file');
@@ -116,7 +117,22 @@ console.log('');
 console.log('-------------------');
 console.log('');
 
-fs.appendFileSync('output.json', JSON.stringify(arr));
+// Write CSV header
+if (!fs.existsSync(OUTPUT_FILE)) {
+  fs.writeFileSync(OUTPUT_FILE, 'Date,Day,Night\n');
+}
+
+// Remove 7 days from the date
+const sevenDaysAgo = new Date();
+sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+for (let i = 0; i < arr.day.length; i++) {
+  const date = new Date(sevenDaysAgo);
+  date.setDate(date.getDate() + i);
+  const dateStr = date.toISOString().split('T')[0];
+  
+  fs.appendFileSync(OUTPUT_FILE, `${dateStr},${arr.day[i]},${arr.night[i]}\n`);
+}
 
 console.log(arr);
 
