@@ -1,3 +1,4 @@
+import fs from 'fs';
 import puppeteer from 'puppeteer';
 import 'dotenv/config';
 
@@ -114,6 +115,8 @@ await page.waitForResponse(async response => {
 console.log('');
 console.log('-------------------');
 console.log('');
+
+fs.appendFileSync('output.json', JSON.stringify(arr));
 
 console.log(arr);
 
