@@ -134,6 +134,7 @@ for (let i = 0; i < arr.day.length; i++) {
   fs.appendFileSync(OUTPUT_FILE, `${dateStr},${arr.day[i]},${arr.night[i]}\n`);
 }
 
-console.log(arr);
+console.log(`Data written to ${OUTPUT_FILE}`);
 
+// Close the browser.
 await browser.close();
