@@ -61,6 +61,13 @@ console.log(`Navigated to View Consumption, now at ${page.url()}`);
 
 await page.locator('button[data-name="MPAN"]').click();
 
+await page.waitForNetworkIdle();
+
+await page.locator('input[data-value="Total"]').click();
+await page.locator('[data-value="Day"]').click();
+
+await page.locator('::-p-text(Apply)').click();
+
 console.log(`Navigated to electricity usage, now at ${page.url()}`);
 
 const arr: number[] = [];
@@ -81,7 +88,6 @@ await page.waitForResponse(async response => {
   } catch (error) {}
   return false;
 });
-
 
 console.log('');
 console.log('-------------------');
