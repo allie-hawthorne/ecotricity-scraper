@@ -10,7 +10,7 @@ if (!USERNAME || !PASSWORD) {
 }
 
 // Launch the browser and open a new blank page.
-const browser = await puppeteer.launch();
+const browser = await puppeteer.launch({headless: false});
 const page = await browser.newPage();
 
 // Navigate the page to a URL.
@@ -38,7 +38,6 @@ await page.locator('::-p-aria(Log in)').click();
 
 // Wait for navigation and loading to complete after login
 await page.waitForNavigation();
-await page.waitForNavigation();
 await page.waitForNetworkIdle();
 
 console.log(`Logged in! Now at ${page.url()}`);
@@ -51,19 +50,43 @@ await page.locator('::-p-aria(Next)').click();
 
 await page.waitForNetworkIdle();
 
-console.log('Done! Parsing data...');
+console.log(`Selected address, now at ${page.url()}`);
 
-// // Locate the full title with a unique string.
-const textSelector = await page
-  .locator('.customerName')
-  .waitHandle();
-const fullTitle = await textSelector?.evaluate(el => el.textContent);
+await page.locator('.sidebar-navigation button:has([title="Your Meter"])').click();
+await page.locator('.sidebar-navigation li[data-id="2"]').click();
+
+await page.waitForNetworkIdle();
+
+console.log(`Navigated to View Consumption, now at ${page.url()}`);
+
+await page.locator('button[data-name="MPAN"]').click();
+
+console.log(`Navigated to electricity usage, now at ${page.url()}`);
+
+const arr: number[] = [];
+await page.waitForResponse(async response => {
+  try {
+    const data = await response.json();
+    if ('actions' in data) {
+      const returnValueStr = data.actions[0].returnValue.returnValue;
+      const parsedData = JSON.parse(returnValueStr);
+
+      const responseStr = parsedData.IPResult.response;
+      const responseData = JSON.parse(responseStr);
+      if (responseData.Data) {
+        arr.push(...responseData.Data);
+        return true;
+      }
+    }
+  } catch (error) {}
+  return false;
+});
+
 
 console.log('');
 console.log('-------------------');
 console.log('');
 
-// Print the full title.
-console.log('Greeting:', fullTitle);
+console.log(arr);
 
 await browser.close();
