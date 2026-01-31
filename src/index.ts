@@ -1,6 +1,7 @@
 import fs from 'fs';
 import puppeteer from 'puppeteer';
 import 'dotenv/config';
+import { addDays, startOfDay, subDays } from 'date-fns';
 
 const USERNAME = process.env.ECOTRICITY_USERNAME || '';
 const PASSWORD = process.env.ECOTRICITY_PASSWORD || '';
@@ -12,7 +13,7 @@ if (!USERNAME || !PASSWORD) {
 }
 
 // Launch the browser and open a new blank page.
-const browser = await puppeteer.launch({headless: false});
+const browser = await puppeteer.launch();
 const page = await browser.newPage();
 
 // Navigate the page to a URL.
@@ -117,19 +118,30 @@ console.log('');
 console.log('-------------------');
 console.log('');
 
+let lastDate: Date | undefined = undefined;
 // Write CSV header
 if (!fs.existsSync(OUTPUT_FILE)) {
   fs.writeFileSync(OUTPUT_FILE, 'Date,Day,Night\n');
+} else {
+  const data = fs.readFileSync(OUTPUT_FILE, 'utf-8');
+  const lines = data.split('\n');
+
+  const lastDateStr = lines[lines.length - 2]?.split(',')[0];
+
+  if (!lastDateStr) throw new Error('Output file is empty');
+
+  lastDate = new Date(lastDateStr);
 }
 
-// Remove 7 days from the date
-const sevenDaysAgo = new Date();
-sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+// Remove 6 days from the date
+const sixDaysAgo = startOfDay(subDays(new Date(), 6));
 
 for (let i = 0; i < arr.day.length; i++) {
-  const date = new Date(sevenDaysAgo);
-  date.setDate(date.getDate() + i);
-  const dateStr = date.toISOString().split('T')[0];
+  const date = new Date(sixDaysAgo);
+  const newDate = addDays(date, i);
+  const dateStr = newDate.toISOString().split('T')[0];
+  
+  if (lastDate && newDate <= lastDate) continue;
   
   fs.appendFileSync(OUTPUT_FILE, `${dateStr},${arr.day[i]},${arr.night[i]}\n`);
 }
